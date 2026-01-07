@@ -1,0 +1,154 @@
+{
+  "version": 3,
+  "targets": {
+    "net8.0": {
+      "protobuf-net/3.1.25": {
+        "type": "package",
+        "dependencies": {
+          "protobuf-net.Core": "3.1.25"
+        },
+        "compile": {
+          "lib/net6.0/protobuf-net.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/protobuf-net.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "protobuf-net.Core/3.1.25": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/protobuf-net.Core.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/protobuf-net.Core.dll": {
+            "related": ".xml"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "protobuf-net/3.1.25": {
+      "sha512": "vej8g3+5KpwuwA20xoOMJK9nUM/hr7maSu56pIqItmX28JbXF0co1/pD6Mg84+mhLYRQpKiSlOxIDvtaYojKWA==",
+      "type": "package",
+      "path": "protobuf-net/3.1.25",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net462/protobuf-net.dll",
+        "lib/net462/protobuf-net.xml",
+        "lib/net6.0/protobuf-net.dll",
+        "lib/net6.0/protobuf-net.xml",
+        "lib/netcoreapp3.1/protobuf-net.dll",
+        "lib/netcoreapp3.1/protobuf-net.xml",
+        "lib/netstandard2.0/protobuf-net.dll",
+        "lib/netstandard2.0/protobuf-net.xml",
+        "lib/netstandard2.1/protobuf-net.dll",
+        "lib/netstandard2.1/protobuf-net.xml",
+        "protobuf-net.3.1.25.nupkg.sha512",
+        "protobuf-net.nuspec",
+        "protobuf-net.png"
+      ]
+    },
+    "protobuf-net.Core/3.1.25": {
+      "sha512": "LqDpeU+rbzO/uD2iYUBIGCgaeCBrxwmCDGVmUNZ67yShrGLlLJHwFMcDsGZUCxE2iHdRJawMUkTfs3HYIXiqWg==",
+      "type": "package",
+      "path": "protobuf-net.core/3.1.25",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net462/protobuf-net.Core.dll",
+        "lib/net462/protobuf-net.Core.xml",
+        "lib/net6.0/protobuf-net.Core.dll",
+        "lib/net6.0/protobuf-net.Core.xml",
+        "lib/netcoreapp3.1/protobuf-net.Core.dll",
+        "lib/netcoreapp3.1/protobuf-net.Core.xml",
+        "lib/netstandard2.0/protobuf-net.Core.dll",
+        "lib/netstandard2.0/protobuf-net.Core.xml",
+        "lib/netstandard2.1/protobuf-net.Core.dll",
+        "lib/netstandard2.1/protobuf-net.Core.xml",
+        "protobuf-net.core.3.1.25.nupkg.sha512",
+        "protobuf-net.core.nuspec",
+        "protobuf-net.png"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net8.0": [
+      "protobuf-net >= 3.1.25"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\Administrator\\.nuget\\packages\\": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "C:\\Unity\\StarForce\\BuildServer\\GameServer.csproj",
+      "projectName": "GameServer",
+      "projectPath": "C:\\Unity\\StarForce\\BuildServer\\GameServer.csproj",
+      "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
+      "outputPath": "C:\\Unity\\StarForce\\BuildServer\\obj\\",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "C:\\Users\\Administrator\\AppData\\Roaming\\NuGet\\NuGet.Config"
+      ],
+      "originalTargetFrameworks": [
+        "net8.0"
+      ],
+      "sources": {
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "projectReferences": {}
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      }
+    },
+    "frameworks": {
+      "net8.0": {
+        "targetAlias": "net8.0",
+        "dependencies": {
+          "protobuf-net": {
+            "target": "Package",
+            "version": "[3.1.25, )"
+          }
+        },
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.403/PortableRuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}
