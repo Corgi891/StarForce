@@ -37,6 +37,22 @@ namespace StarForce
 
             m_StartGame = false;
             GameEntry.UI.OpenUIForm(UIFormId.MenuForm, this);
+
+            // 连接到服务器
+            ConnectToServer();
+        }
+
+        /// <summary>
+        /// 连接到服务器。
+        /// </summary>
+        private void ConnectToServer()
+        {
+            // 从配置中读取服务器地址和端口，如果没有配置则使用默认值
+            string serverIP = GameEntry.Config.GetString("Server.IP", "127.0.0.1");
+            int serverPort = GameEntry.Config.GetInt("Server.Port", 8000);
+
+            // 连接到服务器
+            GameEntry.NetworkManager.Connect(serverIP, serverPort);
         }
 
         protected override void OnLeave(ProcedureOwner procedureOwner, bool isShutdown)
@@ -49,6 +65,11 @@ namespace StarForce
             {
                 m_MenuForm.Close(isShutdown);
                 m_MenuForm = null;
+            }
+
+            if (!isShutdown)
+            {
+                GameEntry.NetworkManager.Disconnect();
             }
         }
 
