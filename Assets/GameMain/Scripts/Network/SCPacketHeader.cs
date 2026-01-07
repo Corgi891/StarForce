@@ -5,8 +5,11 @@
 // Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
+using ProtoBuf;
+
 namespace StarForce
 {
+    [ProtoContract]
     public sealed class SCPacketHeader : PacketHeaderBase
     {
         public override PacketType PacketType
@@ -15,6 +18,20 @@ namespace StarForce
             {
                 return PacketType.ServerToClient;
             }
+        }
+        
+        [ProtoMember(1)]
+        public override int Id
+        {
+            get;
+            set;
+        }
+
+        [ProtoMember(2)]
+        public override int PacketLength
+        {
+            get;
+            set;
         }
     }
 }

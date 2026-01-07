@@ -7,6 +7,7 @@
 
 using GameFramework;
 using GameFramework.Network;
+using ProtoBuf;
 
 namespace StarForce
 {
@@ -17,13 +18,15 @@ namespace StarForce
             get;
         }
 
-        public int Id
+        [ProtoMember(1)]
+        public virtual int Id
         {
             get;
             set;
         }
 
-        public int PacketLength
+        [ProtoMember(2)]
+        public virtual int PacketLength
         {
             get;
             set;

@@ -136,17 +136,55 @@ namespace StarForce
                 return false;
             }
 
-            m_CachedStream.SetLength(m_CachedStream.Capacity); // 此行防止 Array.Copy 的数据无法写入
             m_CachedStream.Position = 0L;
+            m_CachedStream.SetLength(0);
 
+            // 预留包头空间（使用PacketHeaderLength）
+            int headerReservedSize = PacketHeaderLength;
+            m_CachedStream.SetLength(headerReservedSize);
+            m_CachedStream.Position = headerReservedSize;
+
+            // 先序列化消息包体（带Fixed32长度前缀）
+            RuntimeTypeModel.Default.SerializeWithLengthPrefix(m_CachedStream, packet, packet.GetType(), PrefixStyle.Fixed32, 0);
+            int packetBodyLength = (int)(m_CachedStream.Length - headerReservedSize); // 包体长度（不包括预留的包头空间）
+
+            // 序列化消息包头，设置Id和PacketLength
             CSPacketHeader packetHeader = ReferencePool.Acquire<CSPacketHeader>();
+            packetHeader.Id = packetImpl.Id;
+            packetHeader.PacketLength = packetBodyLength;
+            
+            // 序列化包头到预留空间
+            m_CachedStream.Position = 0L;
             Serializer.Serialize(m_CachedStream, packetHeader);
+            int actualHeaderLength = (int)m_CachedStream.Position;
+            
+            // 如果包头实际长度超过预留空间，需要移动包体数据
+            if (actualHeaderLength > headerReservedSize)
+            {
+                // 读取包体数据
+                byte[] bodyData = new byte[packetBodyLength];
+                m_CachedStream.Position = headerReservedSize;
+                m_CachedStream.Read(bodyData, 0, packetBodyLength);
+                
+                // 重新组织流：包头 + 包体（紧凑排列）
+                m_CachedStream.Position = 0L;
+                m_CachedStream.SetLength(actualHeaderLength + packetBodyLength);
+                m_CachedStream.Write(bodyData, 0, packetBodyLength);
+            }
+            // 如果包头长度等于预留空间，流已经正确，无需调整
+            
             ReferencePool.Release(packetHeader);
 
-            Serializer.SerializeWithLengthPrefix(m_CachedStream, packet, PrefixStyle.Fixed32);
-            ReferencePool.Release((IReference)packet);
-
+            // 将整个流（消息包头 + 消息包体）写入目标流
+            m_CachedStream.Position = 0L;
+            
+            // 记录发送日志（打印包体结构数据）
+            string packetBodyInfo = FormatPacketBody(packet);
+            Log.Info("<color=white>[发送消息] Id={0}, 包体={1}</color>", packetImpl.Id, packetBodyInfo);
+            
             m_CachedStream.WriteTo(destination);
+            ReferencePool.Release((IReference)packet);
+            
             return true;
         }
 
@@ -189,6 +227,12 @@ namespace StarForce
                 if (packetType != null)
                 {
                     packet = (Packet)RuntimeTypeModel.Default.DeserializeWithLengthPrefix(source, ReferencePool.Acquire(packetType), packetType, PrefixStyle.Fixed32, 0);
+                    
+                    if (packet != null)
+                    {
+                        string packetBodyInfo = FormatPacketBody(packet);
+                        Log.Info("<color=yellow>[接收消息] Id={0}, 包体={1}</color>", scPacketHeader.Id, packetBodyInfo);
+                    }
                 }
                 else
                 {
@@ -202,6 +246,121 @@ namespace StarForce
 
             ReferencePool.Release(scPacketHeader);
             return packet;
+        }
+
+        /// <summary>
+        /// 格式化包体数据为JSON字符串（用于日志输出）。
+        /// </summary>
+        private string FormatPacketBody(Packet packet)
+        {
+            if (packet == null)
+            {
+                return "null";
+            }
+
+            try
+            {
+                System.Text.StringBuilder sb = new System.Text.StringBuilder();
+                Type packetType = packet.GetType();
+                System.Reflection.PropertyInfo[] properties = packetType.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                
+                sb.Append("{");
+                bool first = true;
+                foreach (var prop in properties)
+                {
+                    // 跳过 Id 属性（已经在包头中）
+                    if (prop.Name == "Id" || prop.GetCustomAttributes(typeof(ProtoBuf.ProtoIgnoreAttribute), false).Length > 0)
+                    {
+                        continue;
+                    }
+
+                    if (!first)
+                    {
+                        sb.Append(",");
+                    }
+                    first = false;
+
+                    object value = prop.GetValue(packet);
+                    sb.AppendFormat("\"{0}\":", prop.Name);
+                    
+                    if (value == null)
+                    {
+                        sb.Append("null");
+                    }
+                    else if (value is string)
+                    {
+                        // 转义JSON字符串中的特殊字符
+                        string strValue = value.ToString().Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", "\\n").Replace("\r", "\\r").Replace("\t", "\\t");
+                        sb.AppendFormat("\"{0}\"", strValue);
+                    }
+                    else if (value is bool)
+                    {
+                        sb.Append(value.ToString().ToLower());
+                    }
+                    else if (value is System.Collections.IEnumerable && !(value is string))
+                    {
+                        // 数组或集合
+                        sb.Append("[");
+                        bool arrayFirst = true;
+                        foreach (var item in (System.Collections.IEnumerable)value)
+                        {
+                            if (!arrayFirst)
+                            {
+                                sb.Append(",");
+                            }
+                            arrayFirst = false;
+                            sb.Append(FormatValue(item));
+                        }
+                        sb.Append("]");
+                    }
+                    else
+                    {
+                        sb.Append(FormatValue(value));
+                    }
+                }
+                sb.Append("}");
+
+                return sb.Length > 2 ? sb.ToString() : "{}";
+            }
+            catch (Exception ex)
+            {
+                return $"格式化失败: {ex.Message}";
+            }
+        }
+
+        /// <summary>
+        /// 格式化单个值为JSON格式。
+        /// </summary>
+        private string FormatValue(object value)
+        {
+            if (value == null)
+            {
+                return "null";
+            }
+            
+            Type valueType = value.GetType();
+            
+            // 基本类型
+            if (valueType.IsPrimitive || valueType == typeof(decimal))
+            {
+                return value.ToString();
+            }
+            
+            // 字符串
+            if (valueType == typeof(string))
+            {
+                string strValue = value.ToString().Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", "\\n").Replace("\r", "\\r").Replace("\t", "\\t");
+                return $"\"{strValue}\"";
+            }
+            
+            // 布尔值
+            if (valueType == typeof(bool))
+            {
+                return value.ToString().ToLower();
+            }
+            
+            // 其他对象，尝试转换为字符串
+            return $"\"{value}\"";
         }
 
         private Type GetServerToClientPacketType(int id)
